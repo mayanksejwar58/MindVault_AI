@@ -1,0 +1,57 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login - MindVault</title>
+  <link rel="stylesheet" href="auth.css" />
+</head>
+<body>
+  <button class="theme-btn" onclick="toggleTheme()" id="themeBtn">Light Mode</button>
+
+  <main class="auth-layout">
+    <section class="auth-hero">
+      <a class="auth-brand" href="index.html">
+        <span class="auth-brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 48 48" class="auth-brand-logo" role="img">
+            <defs>
+              <linearGradient id="mvGradientAuthLogin" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#3f8cff" />
+                <stop offset="100%" stop-color="#1b4ec9" />
+              </linearGradient>
+            </defs>
+            <rect x="2" y="2" width="44" height="44" rx="13" fill="url(#mvGradientAuthLogin)" />
+            <circle cx="24" cy="24" r="10" fill="none" stroke="#ffffff" stroke-width="2.8" />
+            <circle cx="24" cy="24" r="3" fill="#ffffff" />
+            <path d="M10 15 L16 10 L22 15 L28 10 L34 15 L38 12" stroke="#ffffff" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </span>
+        <span class="auth-brand-text-wrap">
+          <span class="auth-brand-text">MindVault</span>
+          <span class="auth-brand-subtext">AI</span>
+        </span>
+      </a>
+
+      <p class="auth-eyebrow">Secure Access</p>
+      <h1>Welcome Back</h1>
+      <p>Sign in to continue exploring and summarizing your private documents.</p>
+    </section>
+
+    <section class="auth-container">
+      <h2>Login</h2>
+      <p class="hint">Enter your credentials to open your workspace.</p>
+
+      <input id="email" placeholder="Email" />
+      <input id="password" type="password" placeholder="Password" />
+
+      <button onclick="login()">Login</button>
+
+      <p>Don't have an account? <a href="signup.html">Create one</a></p>
+    </section>
+  </main>
+
+  <footer class="auth-footer">MindVault AI</footer>
+
+  <script src="auth.js"></script>
+</body>
+</html>

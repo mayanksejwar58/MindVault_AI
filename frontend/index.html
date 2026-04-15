@@ -1,0 +1,155 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MindVault AI</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <script>
+    if (!localStorage.getItem("token")) {
+      window.location.href = "login.html";
+    }
+  </script>
+
+  <div class="page-shell">
+    <div id="navbar"></div>
+
+    <main class="container">
+      <header class="app-header">
+        <div class="app-header-copy">
+          <p class="eyebrow">Knowledge Workspace</p>
+          <h1>MindVault AI</h1>
+          <p class="subtitle">Private document intelligence for your PDFs, with clean upload, search, and summary workflows.</p>
+        </div>
+        <div class="app-header-actions">
+          <button class="btn" id="openWorkspaceBtn" onclick="enterApp()">Open Workspace</button>
+        </div>
+      </header>
+
+      <section class="hero card" id="welcome">
+        <h2>Work Faster With Your Documents</h2>
+        <p class="subtitle">Upload your PDFs, ask focused questions, and generate clear summaries without leaving one dashboard.</p>
+        <div class="hero-points">
+          <article class="hero-point">
+            <h3>1. Upload</h3>
+            <p>Add your files and split content into searchable chunks.</p>
+          </article>
+          <article class="hero-point">
+            <h3>2. Search</h3>
+            <p>Find relevant context instantly with query-based retrieval.</p>
+          </article>
+          <article class="hero-point">
+            <h3>3. Summarize</h3>
+            <p>Generate concise, AI-powered overviews from your collection.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="workspace hidden" id="app">
+        <div class="workspace-shell">
+          <div class="tabs">
+            <button class="tab-button active" onclick="switchTab('upload', event)">Upload</button>
+            <button class="tab-button" onclick="switchTab('search', event)">Search</button>
+            <button class="tab-button" onclick="switchTab('summary', event)">Summary</button>
+            <button class="tab-button" onclick="switchTab('info', event)">Collection</button>
+          </div>
+
+          <div id="upload" class="tab-content active card">
+            <h2>Upload PDF</h2>
+            <input type="file" id="fileInput" accept=".pdf" />
+            <button class="btn" onclick="uploadFile()">Upload</button>
+            <div id="uploadStatus" class="status"></div>
+
+            <div id="uploadResults" class="results-box">
+              <h3>Upload Results</h3>
+              <div class="info-grid">
+                <div class="info-card">
+                  <h3>Pages</h3>
+                  <div class="number" id="resultPages">-</div>
+                </div>
+                <div class="info-card">
+                  <h3>Chunks</h3>
+                  <div class="number" id="resultChunks">-</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div id="search" class="tab-content card">
+            <h2>Search Documents</h2>
+            <div class="search-tab-layout">
+              <aside class="search-sidebar">
+                <div class="search-controls">
+                  <input type="text" class="query-input" id="queryInput" placeholder="Ask about your documents..." />
+                  <button class="btn" onclick="queryVectors()">Search</button>
+                </div>
+                <div id="searchStatus" class="status"></div>
+              </aside>
+
+              <div>
+                <div id="summaryBox" class="summary-box">
+                  <h3>Search Summary</h3>
+                  <div id="summaryContent" class="summary-content"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div id="summary" class="tab-content card">
+            <h2>Full Collection Summary</h2>
+            <div class="summary-tab-layout">
+              <aside class="summary-sidebar">
+                <div class="summary-controls">
+                  <button class="btn" onclick="generateFullSummary()">Generate AI Summary</button>
+                </div>
+                <div id="summaryTabStatus" class="status"></div>
+              </aside>
+
+              <div class="summary-display">
+                <div id="summaryTabBox" class="summary-box">
+                  <h3>AI Generated Summary</h3>
+                  <div id="summaryTabContent" class="summary-content"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div id="info" class="tab-content card">
+            <h2>Collection Information</h2>
+            <button class="btn btn-secondary" onclick="getCollectionInfo()">Refresh</button>
+            <div id="infoStatus" class="status"></div>
+
+            <div id="infoResults" class="results-box">
+              <div class="info-grid">
+                <div class="info-card">
+                  <h3>Collection Name</h3>
+                  <div class="number number-small" id="collectionName">-</div>
+                </div>
+                <div class="info-card">
+                  <h3>Total Vectors</h3>
+                  <div class="number" id="totalVectors">-</div>
+                </div>
+              </div>
+              <div class="info-card info-status-card">
+                <h3>Status</h3>
+                <div class="status-text" id="collectionStatus">-</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container footer-inner">
+        <p>MindVault AI</p>
+        <p>Secure RAG workspace for private PDFs</p>
+      </div>
+    </footer>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

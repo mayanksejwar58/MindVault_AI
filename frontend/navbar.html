@@ -1,0 +1,68 @@
+﻿<div class="navbar glass-card">
+  <a class="brand" href="index.html">
+    <span class="brand-mark" aria-hidden="true">
+      <svg viewBox="0 0 48 48" class="brand-logo" role="img">
+        <defs>
+          <linearGradient id="mvGradient" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#3f8cff" />
+            <stop offset="100%" stop-color="#1b4ec9" />
+          </linearGradient>
+        </defs>
+        <rect x="2" y="2" width="44" height="44" rx="13" fill="url(#mvGradient)" />
+        <circle cx="24" cy="24" r="10" fill="none" stroke="#ffffff" stroke-width="2.8" />
+        <circle cx="24" cy="24" r="3" fill="#ffffff" />
+        <path d="M10 15 L16 10 L22 15 L28 10 L34 15 L38 12" stroke="#ffffff" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round" />
+      </svg>
+    </span>
+    <span class="brand-text-wrap">
+      <span class="brand-text">MindVault</span>
+      <span class="brand-subtext">AI</span>
+    </span>
+  </a>
+
+  <div class="nav-links">
+    <a href="#upload" onclick="switchTab('upload', event)">Upload</a>
+    <a href="#search" onclick="switchTab('search', event)">Search</a>
+    <a href="#summary" onclick="switchTab('summary', event)">Summary</a>
+    <a href="#info" onclick="switchTab('info', event)">Collection</a>
+  </div>
+
+  <div class="auth-section compact">
+    <span id="userEmail" class="user-chip"></span>
+    <button class="menu-trigger" onclick="toggleUserMenu()" aria-label="Open account menu">
+      <span class="menu-trigger-text">Account</span>
+      <svg class="menu-trigger-icon" viewBox="0 0 24 24" aria-hidden="true">
+        <circle cx="12" cy="5" r="1.8"></circle>
+        <circle cx="12" cy="12" r="1.8"></circle>
+        <circle cx="12" cy="19" r="1.8"></circle>
+      </svg>
+    </button>
+  </div>
+</div>
+
+<div id="sidebarBackdrop" class="sidebar-backdrop" onclick="closeUserMenu()"></div>
+<aside id="userSidebar" class="user-sidebar">
+  <div class="sidebar-header">
+    <h3>Account</h3>
+    <button class="sidebar-close" onclick="closeUserMenu()" aria-label="Close menu">x</button>
+  </div>
+
+  <div class="sidebar-user">
+    <p class="sidebar-label">Signed in as</p>
+    <p id="sidebarUserEmail" class="sidebar-email"></p>
+  </div>
+
+  <div class="sidebar-nav">
+    <button class="btn btn-ghost" onclick="switchTab('upload', event); closeUserMenu()">Upload</button>
+    <button class="btn btn-ghost" onclick="switchTab('search', event); closeUserMenu()">Search</button>
+    <button class="btn btn-ghost" onclick="switchTab('summary', event); closeUserMenu()">Summary</button>
+    <button class="btn btn-ghost" onclick="switchTab('info', event); closeUserMenu()">Collection</button>
+  </div>
+
+  <div class="sidebar-actions">
+    <button class="btn btn-ghost" onclick="toggleTheme()" id="themeToggleBtn">Light Mode</button>
+    <button class="btn btn-ghost" onclick="changePassword()">Change Password</button>
+    <button class="btn btn-danger" onclick="deleteAccount()">Delete Account</button>
+    <button class="btn btn-secondary" onclick="logout()">Logout</button>
+  </div>
+</aside>

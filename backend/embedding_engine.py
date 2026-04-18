@@ -13,7 +13,7 @@ class EmbeddingEngine:
     """Basic embedding engine with simple cosine-similarity helpers."""
 
     def __init__(self) -> None:
-        self.model = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
+        self.model = GoogleGenerativeAIEmbeddings(model="models/text-embedding-004")
 
     def embed_text_chunks(self, chunks: List[str]) -> np.ndarray:
         """Embed a list of chunk strings."""

@@ -1,8 +1,10 @@
 ﻿from datetime import datetime
 import hashlib
+import io
 import logging
 import os
 import shutil
+import tempfile
 from pathlib import Path
 from threading import Lock
 
@@ -21,10 +23,6 @@ from backend.search_index import SearchIndex
 from backend.vector_store import delete_user_collection, get_collection, store_chunks
 
 
-os.environ.setdefault("PADDLE_PDX_DISABLE_MODEL_SOURCE_CHECK", "True")
-os.environ.setdefault("FLAGS_log_level", "3")
-os.environ.setdefault("GLOG_minloglevel", "3")
-
 load_dotenv()
 
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY", "").strip()
@@ -41,12 +39,10 @@ if not JWT_SECRET_KEY:
 BASE_DIR = Path(__file__).resolve().parent
 FRONTEND_DIR = (BASE_DIR / ".." / "frontend").resolve()
 UPLOAD_DIR = (BASE_DIR / ".." / "uploads").resolve()
-USER_FILES_DIR = UPLOAD_DIR / "files"
 USER_INDEX_BASE_DIR = UPLOAD_DIR / "search_index_users"
 USERS_DB_PATH = UPLOAD_DIR / "users.json"
 
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
-USER_FILES_DIR.mkdir(parents=True, exist_ok=True)
 USER_INDEX_BASE_DIR.mkdir(parents=True, exist_ok=True)
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
@@ -93,6 +89,16 @@ def get_user_index(user_id: str) -> SearchIndex:
         return _search_indexes[key]
 
 
+def _clear_user_data(user_id: str) -> None:
+    """Wipe ChromaDB collection + disk search index for a user."""
+    key = auth_service.normalize_email(user_id)
+    key_hash = hashlib.sha256(key.encode("utf-8")).hexdigest()[:16]
+    delete_user_collection(user_id)
+    shutil.rmtree(USER_INDEX_BASE_DIR / key_hash, ignore_errors=True)
+    with _index_lock:
+        _search_indexes.pop(key, None)
+
+
 @app.get("/", response_class=HTMLResponse)
 def serve_frontend() -> str:
     try:
@@ -101,25 +107,54 @@ def serve_frontend() -> str:
         return f"<h1>Frontend Error</h1><p>{exc}</p>"
 
 
+@app.post("/clear")
+def clear_collection(current_user: dict = Depends(get_current_user)):
+    """Delete all stored chunks and search index for the current user."""
+    try:
+        _clear_user_data(current_user["email"])
+        return {"status": "success", "message": "Collection cleared"}
+    except Exception as exc:
+        logger.error("Clear error: %s", exc)
+        return {"status": "error", "message": str(exc)}
+
+
 @app.post("/upload")
 async def upload_pdf(file: UploadFile = File(...), current_user: dict = Depends(get_current_user)):
+    """
+    Accepts a PDF, processes it entirely in memory using a temp file,
+    and never persists the original PDF to disk.
+    """
     try:
         filename = Path(file.filename).name
         if not filename.lower().endswith(".pdf"):
             raise HTTPException(status_code=400, detail="Only PDF uploads are supported")
 
         user_id = current_user["email"]
-        uhash = hashlib.sha256(user_id.encode("utf-8")).hexdigest()[:16]
-        user_dir = USER_FILES_DIR / uhash
-        user_dir.mkdir(parents=True, exist_ok=True)
-
-        file_path = user_dir / filename
+        uhash = hashlib.sha256(auth_service.normalize_email(user_id).encode("utf-8")).hexdigest()[:16]
         source_id = f"{uhash}_{Path(filename).stem}_{datetime.utcnow().strftime('%Y%m%d%H%M%S')}"
 
-        with open(file_path, "wb") as out:
-            shutil.copyfileobj(file.file, out)
+        # Read the uploaded bytes into memory — no disk write of the PDF
+        pdf_bytes = await file.read()
 
-        pages = extract_text_from_pdf(str(file_path))
+        # Write to a temp file so PyMuPDF/Tesseract can open it by path.
+        # delete=False because Windows locks open files — we delete manually after.
+        tmp_path = None
+        try:
+            with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp:
+                tmp.write(pdf_bytes)
+                tmp.flush()
+                tmp_path = tmp.name
+
+            # Clear previous data for this user before indexing the new document
+            _clear_user_data(user_id)
+
+            pages = extract_text_from_pdf(tmp_path)
+        finally:
+            # Always wipe the temp file — even if extraction fails
+            if tmp_path and os.path.exists(tmp_path):
+                os.unlink(tmp_path)
+
+        # Temp file is gone — PDF no longer exists anywhere on disk
 
         total_chunks = 0
         all_chunks: list[str] = []
@@ -265,17 +300,13 @@ def summarize_results(data: dict, current_user: dict = Depends(get_current_user)
 @app.delete("/account")
 def delete_account(current_user: dict = Depends(get_current_user)):
     user_id = current_user["email"]
-    uhash = hashlib.sha256(user_id.encode("utf-8")).hexdigest()[:16]
+    uhash = hashlib.sha256(auth_service.normalize_email(user_id).encode("utf-8")).hexdigest()[:16]
 
     if not auth_service.delete_user_by_email(user_id):
         raise HTTPException(status_code=404, detail="User not found")
 
-    delete_user_collection(user_id)
-    shutil.rmtree(USER_FILES_DIR / uhash, ignore_errors=True)
+    _clear_user_data(user_id)
     shutil.rmtree(USER_INDEX_BASE_DIR / uhash, ignore_errors=True)
-
-    with _index_lock:
-        _search_indexes.pop(auth_service.normalize_email(user_id), None)
 
     return {"status": "success", "message": "Account deleted successfully"}
 

@@ -1,0 +1,22 @@
+# Environment
+.env
+venv/
+env/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Uploads — kabhi nahi
+uploads/
+
+# PDFs anywhere
+*.pdf
+
+# Embeddings
+*.npy
+
+# OS
+.DS_Store
+Thumbs.db

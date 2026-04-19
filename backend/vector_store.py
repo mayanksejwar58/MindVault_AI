@@ -8,7 +8,11 @@ import chromadb
 logger = logging.getLogger(__name__)
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-CHROMA_DIR = os.path.join(BASE_DIR, "..", "uploads", "chroma_db")
+
+# RENDER FIX: Use PERSIST_DIR env var if set (point to Render Persistent Disk mount path)
+# In Render dashboard -> Environment, set: PERSIST_DIR=/var/data
+_DATA_ROOT = os.getenv("PERSIST_DIR", os.path.join(BASE_DIR, "..", "uploads"))
+CHROMA_DIR = os.path.join(_DATA_ROOT, "chroma_db")
 os.makedirs(CHROMA_DIR, exist_ok=True)
 
 client = chromadb.PersistentClient(path=CHROMA_DIR)
@@ -52,11 +56,6 @@ def store_chunks(chunks, page_num, user_id: str, source_id="unknown"):
             success_count += 1
         except Exception as e:
             logger.warning("Failed to add chunk for page %s index %s: %s", page_num, i, str(e)[:200])
-            try:
-                with open(os.path.join(BASE_DIR, "..", "uploads", "chroma_errors.log"), "a", encoding="utf-8") as fh:
-                    fh.write(f"Failed to add chunk {source_id} p{page_num} c{i}: {e}\n")
-            except Exception:
-                pass
             continue
 
     logger.info("Successfully stored %s/%s chunks", success_count, len(chunks))

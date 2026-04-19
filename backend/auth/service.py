@@ -1,4 +1,5 @@
 ﻿import json
+import os
 from datetime import datetime, timedelta, timezone
 
 import bcrypt
@@ -15,6 +16,11 @@ class AuthService:
         self.expire_minutes = 30
 
     def configure(self, users_db_path: str, jwt_secret_key: str, jwt_algorithm: str = "HS256", access_token_expire_minutes: int = 30):
+        # RENDER FIX: If PERSIST_DIR is set, store users.json there so it survives restarts
+        persist_dir = os.getenv("PERSIST_DIR", "")
+        if persist_dir:
+            os.makedirs(persist_dir, exist_ok=True)
+            users_db_path = os.path.join(persist_dir, "users.json")
         self.users_db_path = users_db_path
         self.jwt_secret = jwt_secret_key
         self.jwt_algorithm = jwt_algorithm

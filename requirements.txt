@@ -17,3 +17,4 @@ numpy
 PyJWT
 email-validator
 bcrypt
+faiss-cpu

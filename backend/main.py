@@ -133,11 +133,8 @@ async def upload_pdf(file: UploadFile = File(...), current_user: dict = Depends(
         uhash = hashlib.sha256(auth_service.normalize_email(user_id).encode("utf-8")).hexdigest()[:16]
         source_id = f"{uhash}_{Path(filename).stem}_{datetime.utcnow().strftime('%Y%m%d%H%M%S')}"
 
-        # Read the uploaded bytes into memory — no disk write of the PDF
         pdf_bytes = await file.read()
 
-        # Write to a temp file so PyMuPDF/Tesseract can open it by path.
-        # delete=False because Windows locks open files — we delete manually after.
         tmp_path = None
         try:
             with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp:
@@ -145,16 +142,13 @@ async def upload_pdf(file: UploadFile = File(...), current_user: dict = Depends(
                 tmp.flush()
                 tmp_path = tmp.name
 
-            # Clear previous data for this user before indexing the new document
             _clear_user_data(user_id)
 
             pages = extract_text_from_pdf(tmp_path)
         finally:
-            # Always wipe the temp file — even if extraction fails
             if tmp_path and os.path.exists(tmp_path):
                 os.unlink(tmp_path)
 
-        # Temp file is gone — PDF no longer exists anywhere on disk
 
         total_chunks = 0
         all_chunks: list[str] = []

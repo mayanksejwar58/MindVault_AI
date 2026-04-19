@@ -12,7 +12,7 @@ pillow
 python-multipart
 python-dotenv
 google-genai
-fastembed
+
 numpy
 PyJWT
 email-validator
